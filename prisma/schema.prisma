@@ -18,10 +18,13 @@ model Patient {
 }
 
 model Consultation {
-  id          String   @id @default(uuid())
-  patient     Patient  @relation(fields: [patientId], references: [id])
-  patientId   String
-  date        DateTime
-  notes       String
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  date           DateTime
+  notes          String
+  diagnostic     String?   // 👈 nouveau champ
+  observations   String?   // 👈 nouveau champ
+  recommandation String?   // 👈 nouveau champ
+
+  patient        Patient  @relation(fields: [patientId], references: [id])
+  patientId      String
 }

@@ -19,11 +19,16 @@ export async function POST(req: Request) {
 
   const newConsultation = await prisma.consultation.create({
     data: {
+      date: new Date(),
+      notes: data.notes || "...",
+      diagnostic: data.diagnostic || "",
+      observations: data.observations || "",
+      recommandation: data.recommandation || "",
       patientId: data.patientId,
-      date: new Date(data.date),
-      notes: data.notes,
     },
   });
 
   return NextResponse.json(newConsultation);
 }
+
+

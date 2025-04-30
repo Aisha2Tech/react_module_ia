@@ -14,13 +14,16 @@ type Consultation = {
   id: string;
   date: string;
   notes: string;
+  diagnostic: string;
+  observations: string;
+  recommandation: string;
   patient: Patient;
 };
 
 export default function ConsultationsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
-  const [form, setForm] = useState({ patientId: "", date: "", notes: "" });
+  const [form, setForm] = useState({ patientId: "", date: "", notes: "" ,diagnostic: "", observations: "", recommandation: ""});
   const [showEditModal, setShowEditModal] = useState(false);
   const [consultationToEdit, setConsultationToEdit] = useState<Consultation | null>(null);
   const [loadingIa, setLoadingIa] = useState(false);
@@ -49,23 +52,39 @@ export default function ConsultationsPage() {
   };
 
   const addConsultation = async () => {
-    
-
     const finalNotes = form.notes || `
-    Diagnostic : ${ficheIA.diagnostic}
-
-    Observations : ${ficheIA.observations}
-
-    Recommandation : ${ficheIA.recommandation}
-    `.trim();
-
-    await fetch("/api/consultations", {
+  Diagnostic : ${ficheIA.diagnostic}
+  
+  Observations : ${ficheIA.observations}
+  
+  Recommandation : ${ficheIA.recommandation}
+  `.trim();
+  
+    const res = await fetch("/api/consultations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, notes: finalNotes }),
+      body: JSON.stringify({ ...form, notes: "...", diagnostic: ficheIA.diagnostic, observations: ficheIA.observations, recommandation: ficheIA.recommandation }),
     });
-
+  
+    if (!res.ok) {
+      alert("Erreur d'enregistrement !");
+      return;
+    }
+  
+    // ✅ Rafraîchit les consultations pour afficher la nouvelle
+    await fetchConsultations();
+  
+    // ✅ Réinitialise le formulaire
+    setForm({ patientId: "", date: "", notes: "",diagnostic: "", observations: "", recommandation: "" });
+  
+    // ✅ Réinitialise la fiche IA
+    setFicheIA({
+      diagnostic: "",
+      observations: "",
+      recommandation: "",
+    });
   };
+  
 
   return (
     <main className="p-8 max-w-2xl mx-auto">
@@ -78,7 +97,7 @@ export default function ConsultationsPage() {
             <p>
                 <strong>🧑 {c.patient.name}</strong> – 🗓 {new Date(c.date).toLocaleDateString()}
             </p>
-            <p className="text-gray-700 mt-1">📝 {c.notes}</p>
+            <p className="text-gray-700 mt-1">📝 {c.diagnostic}</p>
             </div>
             <button
             onClick={async () => {
@@ -140,10 +159,7 @@ export default function ConsultationsPage() {
     onChange={(e) => setForm({ ...form, notes: e.target.value })}
   />
 
-<p className="text-sm mt-2 bg-gray-50 p-2 rounded">
-  <strong>🔎 Aperçu IA :</strong><br />
-  {form.notes || "Aucune note générée"}
-</p>
+
 
 {ficheIA.diagnostic || ficheIA.observations || ficheIA.recommandation ? (
   <div className="mt-4 p-4 border rounded bg-gray-50 space-y-2 text-sm">
